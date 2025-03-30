@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Orders</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; }
+        header { background-color: #ff6f61; color: white; padding: 20px; }
+        form, #adminPanel { margin: 20px auto; padding: 20px; max-width: 300px; border: 1px solid #ddd; border-radius: 8px; display: none; }
+        input, select { margin: 5px 0; padding: 8px; width: 100%; }
+        button { background-color: #ff6f61; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #e65a50; }
+        .stock { margin: 5px 0; }
+        img { width: 100px; height: auto; margin: 5px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sweet Treats Orders</h1>
+        <p>Place your order for next-day delivery at school!</p>
+    </header>
+
+    <div id="passcodePanel">
+        <h3>Enter Passcode</h3>
+        <input type="password" id="passcode" placeholder="Enter passcode">
+        <button onclick="checkPasscode()">Submit</button>
+    </div>
+
+    <form id="orderForm">
+        <h3>Order Your Snacks</h3>
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="candy">Choose Item:</label>
+        <select id="candy" name="candy" onchange="updateStockInfo()">
+            <option value="tinkies">Tinkies</option>
+            <option value="fruit">Fruit</option>
+            <option value="juice_boxes">Juice Boxes</option>
+            <option value="sandwiches">Sandwiches</option>
+            <option value="biltong">Biltong</option>
+        </select>
+        <p class="stock" id="stockInfo"></p>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" required>
+
+        <button type="submit">Place Order</button>
+    </form>
+
+    <div id="adminPanel">
+        <h3>Admin Panel</h3>
+        <h4>Update Inventory</h4>
+        <label for="updateItem">Item:</label>
+        <select id="updateItem">
+            <option value="tinkies">Tinkies</option>
+            <option value="fruit">Fruit</option>
+            <option value="juice_boxes">Juice Boxes</option>
+            <option value="sandwiches">Sandwiches</option>
+            <option value="biltong">Biltong</option>
+        </select>
+        <label for="updateQuantity">New Stock:</label>
+        <input type="number" id="updateQuantity" min="0">
+        <button onclick="updateInventory()">Update</button>
+
+        <h4>Order History</h4>
+        <ul id="orderHistory"></ul>
+    </div>
+
+    <script>
+        let stock = {
+            tinkies: 8,
+            fruit: 12,
+            juice_boxes: 10,
+            sandwiches: 6,
+            biltong: 5
+        };
+
+        let orders = [];
+        const form = document.getElementById('orderForm');
+        const candySelect = document.getElementById('candy');
+        const quantityInput = document.getElementById('quantity');
+
+        function checkPasscode() {
+            const passcode = document.getElementById('passcode').value;
+            if (passcode === '120302') {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('orderForm').style.display = 'none';
+                document.getElementById('passcodePanel').style.display = 'none';
+                displayOrders();
+            } else {
+                document.getElementById('orderForm').style.display = 'block';
+                document.getElementById('passcodePanel').style.display = 'none';
+                updateStockInfo();
+            }
+        }
+
+        function updateStockInfo() {
+            const item = candySelect.value;
+            const stockInfo = document.getElementById('stockInfo');
+            stockInfo.textContent = `In stock: ${stock[item]}`;
+        }
+
+        function updateInventory() {
+            const item = document.getElementById('updateItem').value;
+            const newStock = parseInt(document.getElementById('updateQuantity').value);
+            if (!isNaN(newStock) && newStock >= 0) {
+                stock[item] = newStock;
+                alert(`Stock updated for ${item}!`);
+                updateStockInfo();
+            } else {
+                alert('Please enter a valid number.');
+            }
+        }
+
+        function addOrder(name, item, quantity) {
+            orders.push(`${name}: ${quantity} x ${item}`);
+            displayOrders();
+        }
+
+        function displayOrders() {
+            const orderHistory = document.getElementById('orderHistory');
+            orderHistory.innerHTML = orders.map(order => `<li>${order}</li>`).join('');
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const item = candySelect.value;
+            const quantity = parseInt(quantityInput.value);
+            if (quantity <= stock[item]) {
+                stock[item] -= quantity;
+                addOrder(name, item, quantity);
+                const message = `New order from ${name}: ${quantity} x ${item}`;
+                const whatsappLink = `https://wa.me/27825651935?text=${encodeURIComponent(message)}`;
+                alert('Order placed!');
+                window.open(whatsappLink, '_blank');
+                updateStockInfo();
+                form.reset();
+            } else {
+                alert('Not enough stock.');
+            }
+        });
+
+        updateStockInfo();
+    </script>
+</body>
+</html>
